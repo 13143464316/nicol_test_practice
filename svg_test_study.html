@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Hand Coded SVG</title>
+  <style>
+  html, body {
+    height: 100%;
+    width: 100%;
+    background: #e9e9e9;
+  }
+  body {
+    margin: 0;
+    text-align: center;
+  }
+  .grid {
+    width: 750px;
+    height: 500px;
+    margin: 0 auto;
+    padding-top: 100px;
+    padding-left: 100px;
+    background-image: url('grid.png');
+    position: relative;
+  }
+  .grid::before {
+    content: "";
+    border-left: 1px solid #7c7cea;
+    position: absolute;
+    top: 0;
+    left: 100px;
+    width: 750px;
+    height: 600px;
+  }
+  .grid::after {
+    content: "";
+    border-top: 1px solid #7c7cea;
+    position: absolute;
+    top: 100px;
+    left: 0;
+    width: 850px;
+    height: 500px;
+  }
+  svg {
+    stroke: rgb(0, 0, 0);
+    stroke-width: 5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    fill: none;
+  }
+  </style>
+</head>
+<body>
+
+<div class="grid">
+
+<svg width="750" height="500">
+
+<defs>
+
+<g id="leftalign">
+<!-- Left align icon made with lines -->
+<line x1="3" y1="3" x2="48" y2="3"></line>
+<line x1="3" y1="19" x2="65" y2="19"></line>
+<line x1="3" y1="35" x2="48" y2="35"></line>
+<line x1="3" y1="51" x2="65" y2="51"></line>
+</g>
+
+<g id="rightcaret">
+<!-- Right caret icon made with a polyline -->
+<polyline points="
+  3 3
+  30 28
+  3 53
+"></polyline>
+</g>
+
+<g id="browser">
+<!-- Browser icon made with rectangle and lines -->
+<rect x="3" y="3" width="80" height="60"></rect>
+<line x1="3" y1="19" x2="83" y2="19"></line>
+<line x1="20" y1="3" x2="20" y2="17"></line>
+</g>
+
+<symbol id="alert" viewBox="0 0 86 86">
+<!-- Alert icon made with ellipses and a line -->
+<ellipse cx="43" cy="43" rx="40" ry="40"></ellipse>
+<ellipse style="fill:black;" cx="43" cy="65" rx="5" ry="5"></ellipse>
+<line style="stroke-width: 8;" x1="43" y1="19" x2="43" y2="48"></line>
+</symbol>
+
+<symbol id="play" viewBox="0 0 86 86">
+<!-- Play icon made with ellipse and polygon -->
+<ellipse cx="43" cy="43" rx="40" ry="40"></ellipse>
+<polygon points="35 23, 60 43, 35 63" />
+</symbol>
+
+<symbol id="download" viewBox="0 0 64 71">
+<!-- Download icon made with path -->
+<path d="
+  M 18 3
+  L 46 3
+  L 46 40
+  L 61 40
+  L 32 68
+  L 3 40
+  L 18 40
+  Z
+"></path>
+</symbol>
+
+</defs>
+
+<use href="#leftalign" x="100" y="100"></use>
+
+<use href="#rightcaret" x="300" y="100"></use>
+
+<use href="#browser" x="500" y="100"></use>
+
+<use href="#alert" x="100" y="200" width="100" height="100"></use>
+
+<use href="#play" x="300" y="200" width="100" height="100"></use>
+
+<use href="#download" x="500" y="200" width="100" height="100"></use>
+
+</svg>
+
+</div>
+
+</body>
+</html>
+
+<script>
+
+  //1 编写柱状图数据
+option = {
+  //x轴数据
+  xAxis: {
+    data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  },
+  //柱图数据
+  series: [{
+    //多写几组数据，用于查看不同数据时的图表效果
+    // data: [0.01, 0.2, 0.05, 0.07, 0.04, 0.13, 0.9],
+    // data: [1, 1, 5, 7, 4, 1, 9],
+    // data: [1213, 30, 150, 80, 70, 910, 630],
+    data: [120, 199, 150, 180, 70, 110, 130],
+    //图形样式：柱图
+    type: 'bar'
+  }]
+};
+ 
+//创建图表函数，wrap：图表父元素id；data：图表数据
+function fnCharts(wrap,data){
+  //2.获取canvasWrap元素
+  var eWrap = document.getElementById(wrap);
+  //2.获取canvasWrap元素宽度和高度，用于设置canvas画布大小
+  var nWrapW = eWrap.offsetWidth;
+  var nWrapH = eWrap.offsetHeight;
+ 
+  //3.1 创建canvas画布
+  var eCanvas = document.createElement('canvas');
+  //3.2 设置canvas画布的宽度和高度
+  eCanvas.width = nWrapW;
+  eCanvas.height = nWrapH;
+  //3.3 将canvas画布放入到canvasWrap元素中
+  eWrap.appendChild(eCanvas);
+  //3.4 创建绘图上下文环境(才能够在Canvas画布上绘制)
+  var oCtx = eCanvas.getContext('2d');
+ 
+  //4.设定坐标区域左上角和右下角
+  //起点设置为50.5，而不是整数，是为了让线条变清晰
+  var nZoneStartX = 50.5;
+  var nZoneStartY = 50.5;
+  var nZoneEndX = nWrapW - nZoneStartX;
+  var nZoneEndY = nWrapH - nZoneStartY;
+ 
+  //5.1 使用线条函数绘制x轴轴线
+  fnCreatLine(nZoneStartX,nZoneEndY,nZoneEndX,nZoneEndY);
+  //计算x轴长度
+  var nLonX = nZoneEndX - nZoneStartX;
+  //获取x轴数据数组长度
+  var nDataLon = option.xAxis.data.length;
+  //根据x轴数据数组长度循环，在循环中绘制刻度线和刻度数值名称
+  for(let i=0;i<nDataLon;i++){
+    //计算出x轴刻度线起点在x轴上的值
+    let nScaleX = nZoneStartX+Math.floor(nLonX*(i/nDataLon));
+    //刻度线起点都在x轴上
+    let nScaleY = nZoneEndY;
+    //5.2 绘制刻度线，长度为10
+    fnCreatLine(nScaleX,nScaleY,nScaleX,nScaleY+10);
+    //从数据中获取刻度名称字符串
+    let sName = option.xAxis.data[i];
+    //计算出刻度名称起点
+    let nNameX = nZoneStartX+Math.floor(nLonX*(i/nDataLon))+Math.floor(nLonX*(1/nDataLon))/2;
+    let nNameY = nZoneEndY+15;
+    //5.3 绘制刻度名称
+    fnCreatText(sName,nNameX,nNameY,'#aaa','center');
+  }
+ 
+  //6.1 使用线条函数绘制y轴轴线
+  fnCreatLine(nZoneStartX,nZoneEndY,nZoneStartX,nZoneStartY);
+  //绘制y轴刻度线前，需要有刻度最大值、最小值、刻度线段数和刻度线之间的间隔这些数据。
+  //刻度最大值先从数组中取最大值，等下再计算应该显示的最大值
+  var nMaxScal =  Math.max.apply(null,option.series[0].data);
+  //刻度最小值在本实例中取0
+  var nMinScal = 0;
+  //刻度线段数在本实例中设置为4
+  var nSplit = 4;
+  //计算刻度间隔值
+  var nStep = (nMaxScal-nMinScal)/nSplit;
+  //这时候会发现刻度间隔值好像有点奇怪，因为一般图表的刻度间隔值都是5的倍数，
+  //比如:[0,0.5,1.0,1.5,2]或[0,50,100,150,200]。
+  //所以还需要进一步计算，看nStep是否是5的倍数，如果不是，则递增nIncrease，使其达到最接近的5的倍数。
+  //计算第一步，根据nStep算出倍数值应该是0.5或5或50或...
+  //在本实例中通过把nStep数值先转换为字符串再进行处理(也可以使用对数和指数去计算)。
+  var sTemp = '' + nStep; //把nStep转换为字符串
+  //声明一个需要递增的数,默认为1
+  var nIncrease = 1;
+  //声明一个变量用于解决小数相乘产生的精度bug
+  var nTempMultiple = 1;  
+ 
+  //nIncrease取10的n次幂，通过以下判断计算
+  if(sTemp.indexOf('.')==-1){
+    //如果nStep不包含小数点，nIncrease取10的sTemp.length-2次幂。
+    //比如nStep为19的话，nIncrease = 10的0次幂，递增数为1
+    //nStep为9的话，nIncrease = 10的-1次幂，递增数为0.1
+    //nStep为199的话，nIncrease = 10的1次幂，递增数为10
+    nIncrease = Math.pow(10,sTemp.length-2);
+  }else{
+    //如果nStep包含小数点，nIncrease取10的sTemp整数位-2次幂。
+    nIncrease = Math.pow(10,sTemp.indexOf('.')-2);
+    //这个变量用于解决小数相乘可能产生的精度bug，比如nIncrease是小数的情况
+    nTempMultiple = Math.pow(10,sTemp.indexOf('.')); 
+  }
+  //倍数取整，便于递增，如165改成160，16.5改成16，1.65改成1.6，可通过下列公式实现
+  nStep = Math.ceil(nStep/nIncrease)*(nIncrease*nTempMultiple)/nTempMultiple;
+  //使用循环递增nIncrease修正刻度值
+  while(nStep%(nIncrease*5)!=0){
+    nStep += nIncrease*1;
+  }
+  //通过间隔值乘以线段数，修改刻度最大值
+  nMaxScal = nStep * nSplit;
+  //计算y轴长度，这里多减3是因为y轴顶端要留点距离
+  var nLonY = nZoneEndY - nZoneStartY - 3;
+  //绘制y轴刻度
+  for(let i=0;i<=nSplit;i++){
+    //刻度线起点都在y轴上
+    let nScaleX = nZoneStartX;
+    //计算出y轴刻度线起点在y轴上的值 
+    let nScaleY = nZoneEndY-Math.floor(nLonY*(i/nSplit));
+    //6.2 绘制刻度线
+    fnCreatLine(nScaleX,nScaleY,nScaleX-10,nScaleY);
+    //6.3 绘制刻度值
+    fnCreatText(''+i*nStep,nScaleX-20,nScaleY,'#333');
+    if(i!=0){
+      //6.4 非0位置，绘制x轴网格线
+      fnCreatLine(nScaleX,nScaleY,nScaleX+nLonX,nScaleY,'#ccc');
+    }
+  }
+ 
+  //7.1 计算柱图宽度
+  let nBarWidth = Math.ceil(Math.floor(nLonX*(1/nDataLon))*.8);
+  //遍历x轴数据
+  for(let i=0;i<nDataLon;i++){
+    //7.2 计算柱图高度
+    let nBarHeight = nLonY/nMaxScal*option.series[0].data[i];
+    //7.3 计算柱图X起点
+    let nBarStartX = nZoneStartX+Math.floor(nLonX*(i/nDataLon))
+                     +(Math.floor(nLonX*(1/nDataLon))-nBarWidth)/2;
+    //7.4 计算柱图Y起点
+    let nBarStartY = nZoneEndY-nBarHeight;
+    //7.5 绘制柱图
+    fnCreatRect(nBarStartX,nBarStartY,nBarWidth,nBarHeight);
+  }
+ 
+  //绘制线条函数
+  function fnCreatLine(sX,sY,eX,eY,color='#000'){
+    //开始绘制路径
+    oCtx.beginPath();
+    //设置路径颜色
+    oCtx.strokeStyle = color;
+    //设置路径起点和终点，绘制线条
+    oCtx.moveTo(sX,sY);
+    oCtx.lineTo(eX,eY);
+    //给路径添加颜色
+    oCtx.stroke();
+  }
+ 
+  //绘制文字
+  function fnCreatText(text,x,y,color='#000',align='end',baseLine='middle'){
+    //设置文字颜色
+    oCtx.fillStyle = color;
+    //设置水平对齐方式
+    oCtx.textAlign = align;
+    //设置垂直对齐方式
+    oCtx.textBaseline = baseLine;
+    //绘制文字
+    oCtx.fillText(text,x,y);
+  }
+ 
+  //绘制矩形
+  function fnCreatRect(x,y,width,height,color='#a00'){
+    //设置颜色
+    oCtx.fillStyle = color;
+    oCtx.fillRect(x,y,width,height);
+  }
+}
+//调用图表函数，并传入元素id和option数据
+fnCharts('canvasWrap',option);
+</script>

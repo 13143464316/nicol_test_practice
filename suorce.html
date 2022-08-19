@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+     #water{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left:0;
+    top:0;
+    pointer-events: none;
+  }
+  </style>
+</head>
+<body>
+  <div id="water">
+    <canvas id="canvas"></canvas>
+  </div>
+</body>
+</html>
+<script>
+  function getWater(){
+    const canvas = document.getElementById("canvas")
+    const water = document.getElementById("water")
+    canvas.width = 300
+    canvas.height = 300;
+    canvas.style.display = "none";//隐藏画布本身
+    const ctx = canvas.getContext("2d");//获取画笔
+    ctx.fontSize = "40px";//设置文字大小
+    ctx.fillStyle = "rgba(0,0,0,.7)";//设置文字颜色及透明度
+    ctx.rotate(-0.4);//设置文字旋转角度
+    ctx.fillText("谢子文", canvas.width / 6, canvas.height / 2);//设置显示文字内容
+    const img = canvas.toDataURL("image/png");
+    const style = `background-image:url(${img});`;//定义样式
+    water.setAttribute("style", style);//给要添加水印的元素设置样式
+  }
+
+  // window.onload = function(){
+    getWater()
+  // }
+  const water = document.getElementById("water")
+  // 观察器的配置（需要观察什么变动）
+  const config = { attributes: true, childList: true, subtree: true };
+
+  // 当观察到变动时执行的回调函数
+  const callback = function() {
+    console.log('触发回调')
+    // getWater()
+  };
+  // 创建一个观察器实例并传入回调函数
+  const observer = new MutationObserver(callback);
+  
+  // 以上述配置开始观察目标节点
+  observer.observe(water, config);
+  // 之后，可停止观察
+  observer.disconnect();
+
+  function ref(val){
+    return new RefImp(val)
+}
+function trackRefValue(ref) {
+  //当我们收集的时候首先必须被effect了，也就是activeEffect存在，才会被收集。
+  if(isTracking()) {
+     //ref.dep 就是ref中新建的dep
+    trackEffects(ref.dep) //trackEffects为封装的收集依赖逻辑，实质前面的文章reactive已经讲过。
+  }
+}
+
+class RefImp{
+    _value;
+     dep;
+    constructor(value){
+        this._value = value;
+        this.dep = new Set();
+    }
+    get value(){
+        return this._value;
+    }
+    set value(newValue) {
+      this._value = newValue
+     triggerEffects(this.dep) //此为封装的触发依赖函数，实质前面的文章reactive已经讲过。
+  }
+}
+
+console.log(ref(123),ref(123).value)
+
+
+let foo = {
+  a:1,
+  b:2
+}
+let handler = {
+  get:(obj,key)=>{
+    console.log('得到数值')
+    return key in obj?obj[key]:void 0;
+  }
+}
+const P = new Proxy(foo,handler);
+console.log('打印值1111',P.a);
+//proxy表示新生成的代理对象本身,和用一般方式new Proxy(target, handler)创建的代理对象没什么不同，只是它可以被撤销掉
+//revoke表示撤销方法，调用的时候不需要加任何参数，就可以撤销掉和它一起生成的那个代理对象
+const { proxy,revoke } = Proxy.revocable(foo, handler)
+console.log('打印值222222',proxy.a);
+revoke()
+console.log(proxy.a) // 取消后打印会报错
+
+</script>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      .box {
+        height: 200px;
+        width: 100px;
+        overflow: hidden;
+        margin: 400px auto 0;
+      }
+      .box > div {
+        height: 200px;
+        width: 100%;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <input type="text" name="tel1" id="txtTel1" maxlength="1" />
+    <input type="text" name="tel2" id="txtTel2" maxlength="1" />
+    <input type="text" name="tel3" id="txtTel3" maxlength="1" />
+    <input type="text" name="tel3" id="txtTel4" maxlength="1" />
+    <input type="text" name="tel3" id="txtTel5" maxlength="1" />
+    <iframe
+      id="myframe"
+      name="richedit"
+      style="height: 100px; width: 100px"
+    ></iframe>
+    <input type="file" id="files-list" />
+    <div id="output"></div>
+    <div id="divProgress"></div>
+    <div id="droptarget" style="width: 100px;height: 100px;background: aqua;"></div>
+    <div>
+      <div class="code_item"></div>
+      <div class="code_item"></div>
+      <div class="code_item"></div>
+      <div class="code_item"></div>
+      <div class="code_item"></div>
+      <div class="code_item"></div>
+      <input class="input_code" type="text">
+    </div>
+  </body>
+  <script>
+    // 拖放
+    let droptarget = document.getElementById("droptarget");
+    droptarget.addEventListener("dragover", (event) => { 
+      console.log('event拖拽移动',event);
+      //  setDragImage('nicol', 100,100)
+      event.preventDefault(); 
+      });
+      droptarget.addEventListener("dragenter", (event) => { 
+      event.preventDefault(); 
+      }); 
+
+    window.onload = function () {
+      document.getElementById('txtTel1').focus()
+      frames['richedit'].document.designMode = 'on'
+    }
+
+    let iframeWindow = document.getElementById('myframe').contentWindow
+    iframeWindow.postMessage('A secret', 'http://127.0.0.1:5500/test.html')
+    window.addEventListener('message', (event) => {
+      // 确保来自预期发送者
+      if (event.origin == 'http://127.0.0.1:5500/test.html') {
+        // 对数据进行一些处理
+        processMessage(event.data)
+        // 可选：向来源窗口发送一条消息
+        event.source.postMessage('Received!', 'http://127.0.0.1:5500/test.html')
+      }
+    })
+
+    let filesList = document.getElementById('files-list')
+    function handleEvent(event) {
+      let info = '',
+        output = document.getElementById('output'),
+        files,
+        i,
+        len
+      event.preventDefault()
+      if (event.type == 'drop') {
+        files = event.dataTransfer.files
+        i = 0
+        len = files.length
+        while (i < len) {
+          info += `${files[i].name} (${files[i].type}, ${files[i].size} bytes)<br>`
+          i++
+        }
+        output.innerHTML = info
+      }
+    };
+    droptarget.addEventListener('dragenter', handleEvent);
+      droptarget.addEventListener('dragover', handleEvent);
+      droptarget.addEventListener('drop', handleEvent);
+
+    filesList.addEventListener('change', (event) => {
+      let info = '',
+        output = document.getElementById('output'),
+        progress = document.getElementById('divProgress'),
+        files = event.target.files,
+        type = 'default',
+       
+        reader = new FileReader(),
+        url = window.URL.createObjectURL(files[0])
+      console.log('直接读取内存地址', url)
+   
+
+      //  if (url) {
+      //  if (/image/.test(files[0].type)) {
+      //  output.innerHTML = `<img src="${url}">`;
+      //  } else {
+      //  output.innerHTML = "Not an image.";
+      //  }
+      //  } else {
+      //  output.innerHTML = "Your browser doesn't support object URLs.";
+      //  }
+      //  blob = blobSlice(files[0], 0, 32);
+      //  if(blob){
+      //   reader.readAsText(blob);
+      //   reader.onerror = function(){
+      //     output.innerHTML = 'Could not read file,error code is'+reader.error.code;
+      //     reader.onload = function() {
+      //     output.innerHTML = reader.result;
+      //     };
+      //   }
+      //  }else{
+      //   console.log("Your browser doesn't support slice().");
+      //  }
+      console.log(progress, files, reader)
+
+      if (/image/.test(files[0].type)) {
+        reader.readAsDataURL(files[0])
+        type = 'image'
+      } else {
+        reader.readAsText(files[0])
+        type = 'text'
+      }
+
+      reader.onerror = function () {
+        output.innerHTML =
+          'Could not read file, error code is ' + reader.error.code
+      }
+
+      reader.onprogress = function (event) {
+        console.log('进度条', event)
+        if (event.lengthComputable) {
+          //  progress.innerHTML = `${event.loaded}/${event.total}`;
+          progress.innerHTML = event.loaded
+          console.log(progress.innerHTML)
+        }
+      }
+
+      function blobSlice() {}
+
+      reader.onload = function () {
+        let html = ''
+        switch (type) {
+          case 'image':
+            html = `<img src="${reader.result}">`
+            break
+          case 'text':
+            html = reader.result
+            break
+        }
+        output.innerHTML = html
+      }
+    })
+    function tabForward(event) {
+      if (
+        !/\d/.test(String.fromCharCode(event.charCode)) &&
+        event.charCode > 9 &&
+        !event.ctrlKey
+      ) {
+        event.preventDefault()
+      }
+      if (event.code == 'Space') return
+      let target = event.target
+      console.log('得到目标值', event, target.nextElementSibling)
+      if (target.value.length == target.maxLength) {
+        // let form = target.form
+        for (let i = 0, len = arr.length; i < len; i++) {
+          if (document.getElementById([arr[i]]) == target) {
+            if (document.getElementById([arr[i + 1]])) {
+              document.getElementById([arr[i + 1]]).focus()
+            }
+            return
+          }
+        }
+      }
+    }
+    var flag = true
+    let arr = ['txtTel1', 'txtTel2', 'txtTel3', 'txtTel4', 'txtTel5']
+    for (let id of arr) {
+      let textbox = document.getElementById(id)
+      textbox.addEventListener('compositionstart', () => {
+        console.log('进来开始')
+        flag = false
+      })
+
+      textbox.addEventListener('compositionend', () => {
+        console.log('进来结束')
+        flag = true
+      })
+      textbox.addEventListener('keyup', ($event) => {
+        if (flag) {
+          tabForward($event)
+        }
+      })
+    }
+  </script>
+</html>
